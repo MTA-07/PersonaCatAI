@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PersonaChat AI - Karakter Seçimi</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-theme="koyu" data-view="pick">
+{% include '_scene.html' %}
+<section class="view" id="pick">
+  <div class="hero">
+    <svg class="sc" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice"><use href="#scn"/></svg>
+    <b><span class="mk"><i></i><i></i></span>PersonaChat</b>
+    <div><h1>Kiminle sohbet etmek istersin?</h1><p>Bir karakter seç, konuşma tarzını o belirlesin.</p></div>
+  </div>
+  <div class="grid">
+    {% for persona in personas %}
+    <div class="card" style="--c:{{ persona.color or '#6b7fb0' }}">
+      <div class="em">{{ persona.icon }}</div>
+      <h2>{{ persona.name }}</h2>
+      <p>{{ persona.description }}</p>
+      <a class="go" href="{{ url_for('chat', persona_id=persona.id) }}">Sohbete Başla</a>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+</body></html>

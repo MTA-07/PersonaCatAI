@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ persona.name }} ile Sohbet - PersonaChat AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-theme="koyu" data-view="chat">
+<section class="view" id="chat">
+  <div class="app" style="--c:{{ persona.color or '#6b7fb0' }}">
+    <aside class="sd">
+      <a class="back" href="{{ url_for('home') }}">&larr; Karakter Değiştir</a>
+      {% for p in personas %}
+      <a class="li{{ ' on' if p.id == persona.id }}" style="--c:{{ p.color or '#6b7fb0' }}" href="{{ url_for('chat', persona_id=p.id) }}"><span>{{ p.icon }}</span>{{ p.name }}</a>
+      {% endfor %}
+    </aside>
+    <div class="mid">
+      <div class="hd"><div class="em">{{ persona.icon }}</div><div><b>{{ persona.name }}</b><small>{{ persona.description }}</small></div></div>
+      <div class="ms" id="chat-box"><div class="b">Merhaba! Ben {{ persona.name }}. Seninle konuşmak için sabırsızlanıyorum!</div></div>
+      <form class="inp" id="chat-form"><input type="text" id="user-input" placeholder="Mesajınızı yazın..." required autocomplete="off"><button type="submit">➤</button></form>
+    </div>
+  </div>
+</section>
+<script>
+const chatForm = document.getElementById("chat-form");
+const userInput = document.getElementById("user-input");
+const chatBox = document.getElementById("chat-box");
+const personaId = "{{ persona.id }}";
+
+// Metni güvenli şekilde HTML'e çevirir; *italik*, **kalın** ve satır sonlarını destekler
+function fmt(t){
+  const e = document.createElement("div"); e.textContent = t;
+  return e.innerHTML.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<em>$1</em>").replace(/\n/g,"<br>");
+}
+function addMsg(text, isUser){
+  const d = document.createElement("div");
+  d.className = "b" + (isUser ? " u" : "");
+  if (isUser) d.textContent = text; else d.innerHTML = fmt(text);
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return d;
+}
+
+chatForm.addEventListener("submit", async function(e){
+  e.preventDefault();
+  const message = userInput.value.trim();
+  if (!message) return;
+  addMsg(message, true);
+  userInput.value = "";
+  const wait = addMsg("…", false);
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: message, persona_id: personaId })
+    });
+    const data = await response.json();
+    wait.innerHTML = fmt(data.reply);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  } catch (error) {
+    console.error("Hata oluştu:", error);
+    wait.textContent = "Mesaj gönderilemedi!";
+  }
+});
+</script>
+</body></html>
